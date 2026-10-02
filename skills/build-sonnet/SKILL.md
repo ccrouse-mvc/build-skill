@@ -1,9 +1,9 @@
 ---
-name: build
-description: Run a piece of work as an orchestrator — hold the plan and the model of the system yourself, hand the actual implementation to Opus 5.5 `coder` agents, and verify every claim they make before building on it. Use when Chuck types /build, or says orchestrate this, delegate this, run this as agents, break this up, or hands over a job big enough that one pass will not do it. Not for one-line fixes.
+name: build-sonnet
+description: /build with Sonnet 5.5 coders (opt-in trial since 2026-10-02). The same orchestration: you hold the plan, `coder-sonnet` agents write, an Opus 5.5 `verifier` checks. Use ONLY when Chuck types /build-sonnet or asks for the Sonnet build; plain /build, orchestrate this and delegate this go to the build skill.
 ---
 
-# build — you orchestrate, Opus 5.5 writes
+# build-sonnet — you orchestrate, Sonnet 5.5 writes
 
 Chuck's pattern: **one mind holds the plan, other minds do the work, and the one holding the
 plan checks everything before it builds on it.**
@@ -11,14 +11,19 @@ plan checks everything before it builds on it.**
 Invoking this skill is the authorization to use the `Agent` tool. Outside it, the default
 still stands: do not spawn agents unless asked.
 
-## Opus 5.5 on every level (set 2026-09-22, "for now")
+## Sonnet 5.5 writes, Opus 5.5 plans and checks (trial, 2026-10-02)
 
-**Every seat runs Opus 5.5** — the orchestrator, every `coder`, `coder-ui` and `verifier`.
-The three agents are pinned by
-full ID in their frontmatter (`model: claude-opus-5-5`), not the `opus` alias, so a newer
-alias target cannot quietly swap them out. That half is automatic.
+**`coder-sonnet` and `coder-ui-sonnet` run Sonnet 5.5; the orchestrator and `verifier` run Opus 5.5.**
+The three agents are pinned by full ID in their frontmatter (`claude-sonnet-5-5` for the
+coders, `claude-opus-5-5` for the verifier), not an alias, so a newer alias target cannot
+quietly swap them out. That half is automatic.
 
-**Effort (set 2026-09-22):** `coder` and `coder-ui` run at `medium`, Opus 5.5's own
+**This is a trial.** In the 2026-10-02 test Sonnet coders cost about half as much per seat
+and the finished code matched all-Opus, but both Sonnet runs first shipped a lock bug that
+only the verifier caught. So the verifier and probe rules in step 4 are not optional here.
+In the report, give the run's verifier refutations and what your probes caught.
+
+**Effort (set 2026-09-22):** `coder-sonnet` and `coder-ui-sonnet` run at `medium`, Opus 5.5's own
 default. The model thinks more per turn at a given effort than Opus 5 did, and at
 `medium` it beats Opus 5 at `max` on Anthropic's own coding benchmark. `verifier` stays
 at `high`, because thoroughness is the whole of its job. If coders start coming back
@@ -68,7 +73,7 @@ anything.
 
 ## 2. Decompose so the pieces cannot collide
 
-A good task for a `coder` is:
+A good task for a `coder-sonnet` is:
 
 - **Independently verifiable.** There is a command whose output says whether it worked.
 - **File-disjoint from anything running beside it.** Two agents in one file is how a
@@ -76,9 +81,9 @@ A good task for a `coder` is:
   they are one piece.
 - **Small enough to hold in one head**, big enough to be worth a context load. Roughly:
   it would take you thirty minutes — not three, and not ninety. **A piece that needs more
-  than ~80 turns is two pieces** — the same unit as the coder's own budget and its
-  `maxTurns`. A coder's cost per turn climbs the longer it runs; on 2026-09-23 the two
-  coders past 90 turns cost 39% of all coder spend.
+  than ~80 turns is two pieces** — the same unit as the coder-sonnet's own budget and its
+  `maxTurns`. A coder-sonnet's cost per turn climbs the longer it runs; on 2026-09-23 the two
+  coders past 90 turns cost 39% of all coder-sonnet spend.
 - **Written as a brief, not a title.** The agent sees your prompt and nothing else of
   this conversation. Name the files, the constraint, the acceptance check, and the things
   it must *not* touch.
@@ -97,13 +102,13 @@ understand the task yet — go back to step 1.
 ## 3. Delegate
 
 ```
-Agent(subagent_type: "coder", description: "...", prompt: <the brief>)
+Agent(subagent_type: "coder-sonnet", description: "...", prompt: <the brief>)
 ```
 
-- **`coder` has no browser. `coder-ui` does** — plus the front-end standards preloaded —
-  and pays for it in context on every turn. Use `coder-ui` only when the piece changes UI
-  or its acceptance check has to run in a real browser. Everything else is `coder`.
-- **Mechanical pieces go to `coder` too.** `coder-lite` (Sonnet 5) was trialed and retired
+- **`coder-sonnet` has no browser. `coder-ui-sonnet` does** — plus the front-end standards preloaded —
+  and pays for it in context on every turn. Use `coder-ui-sonnet` only when the piece changes UI
+  or its acceptance check has to run in a real browser. Everything else is `coder-sonnet`.
+- **Mechanical pieces go to `coder-sonnet` too.** `coder-lite` (Sonnet 5) was trialed and retired
   on 2026-09-24: it saved under $0.10 a piece and shipped the A/B test's only hidden-test
   failure.
 - **Parallel by default** when the pieces are file-disjoint: send them in **one message
@@ -143,7 +148,7 @@ bill with 10 cold rewrites; the one-build 2026-09-18 run after a compact was 9%.
 
 ## 4. Verify. Never trust the report.
 
-**A `coder` saying "tests pass" is a claim, not evidence** — written by the mind that just
+**A `coder-sonnet` saying "tests pass" is a claim, not evidence** — written by the mind that just
 wrote the code, at the least reliable moment there is.
 
 **Hand the claims to a `verifier`.** It runs on Opus 5.5 and has no edit tools, so it cannot
@@ -151,10 +156,10 @@ quietly fix what it is judging:
 
 ```
 Agent(subagent_type: "verifier", description: "...", prompt:
-  <the original brief> + <the coder's report verbatim> + <what specifically to attack>)
+  <the original brief> + <the coder-sonnet's report verbatim> + <what specifically to attack>)
 ```
 
-Give it the report **verbatim**. It cannot see the coder's transcript either, and a
+Give it the report **verbatim**. It cannot see the coder-sonnet's transcript either, and a
 paraphrase is where the interesting discrepancy goes missing.
 
 It answers CONFIRMED / REFUTED / **UNPROVEN** per claim. Treat UNPROVEN as its own
@@ -172,7 +177,7 @@ nothing and it is the run you will be quoting in the report.
 
 The measured catches were in that set (an ABBA deadlock, a write past a lock).
 Otherwise spawn one when the change is subtle, spans files,
-or touches UI, and skip it when the coder's evidence is a test that plainly exercises the
+or touches UI, and skip it when the coder-sonnet's evidence is a test that plainly exercises the
 new path and you have read it.
 
 **Every piece without a verifier gets a probe from you.** Read its diff, then run one
@@ -218,11 +223,11 @@ Two things an orchestrated run still has to say, a line or two each:
 
 | Agent | Model | Can edit | For |
 | --- | --- | --- | --- |
-| `coder` | Opus 5.5 | yes | building one scoped, file-disjoint piece — no browser |
-| `coder-ui` | Opus 5.5 | yes | the same, when the piece is UI or must be checked in a real browser |
-| `verifier` | Opus 5.5 | **no** | attacking a claim the coder made |
+| `coder-sonnet` | Sonnet 5.5 | yes | building one scoped, file-disjoint piece — no browser |
+| `coder-ui-sonnet` | Sonnet 5.5 | yes | the same, when the piece is UI or must be checked in a real browser |
+| `verifier` | Opus 5.5 | **no** | attacking a claim the coder-sonnet made |
 
-`coder` and `coder-ui` share one body and differ only in tools. Both carry a `tools:`
+`coder-sonnet` and `coder-ui-sonnet` share one body and differ only in tools. Both carry a `tools:`
 whitelist on purpose: without one an agent inherits every tool schema in the session and
 starts at ~88k tokens instead of ~35k, re-read on every turn.
 

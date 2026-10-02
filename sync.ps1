@@ -1,12 +1,18 @@
-# sync.ps1 - copy the live /build skill and its agents from ~/.claude into this repo.
-# The live copies in ~/.claude are what Claude Code loads; this repo is the history.
+# sync.ps1 - copy the live /build and /build-sonnet skills and their agents from ~/.claude
+# into this repo. The live copies in ~/.claude are what Claude Code loads; this repo is the
+# history. /build-sonnet is generated: run `python make_sonnet.py` first if /build changed.
 # Run, review `git diff`, commit.
 $ErrorActionPreference = 'Stop'
 $src = Join-Path $env:USERPROFILE '.claude'
 $dst = $PSScriptRoot
-New-Item -ItemType Directory -Force (Join-Path $dst 'skills\build'), (Join-Path $dst 'agents') | Out-Null
-Copy-Item (Join-Path $src 'skills\build\SKILL.md') (Join-Path $dst 'skills\build\SKILL.md') -Force
-foreach ($a in @('coder', 'coder-ui', 'verifier')) {
-    Copy-Item (Join-Path $src "agents\$a.md") (Join-Path $dst "agents\$a.md") -Force
+$files = @(
+    'skills\build\SKILL.md', 'skills\build-sonnet\SKILL.md',
+    'agents\coder.md', 'agents\coder-ui.md', 'agents\verifier.md',
+    'agents\coder-sonnet.md', 'agents\coder-ui-sonnet.md'
+)
+foreach ($f in $files) {
+    $to = Join-Path $dst $f
+    New-Item -ItemType Directory -Force (Split-Path $to) | Out-Null
+    Copy-Item (Join-Path $src $f) $to -Force
 }
-Write-Output 'synced: skills/build/SKILL.md, agents/coder.md, agents/coder-ui.md, agents/verifier.md'
+Write-Output ('synced: ' + (($files | ForEach-Object { $_ -replace '\\', '/' }) -join ', '))

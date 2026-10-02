@@ -89,6 +89,29 @@ cases, and no agent deletes anything it didn't create.
 
 ---
 
+## /build-sonnet (trial)
+
+A second skill in this repo, `/build-sonnet`, is the same thing with the two coder agents on
+Claude Sonnet 5.5, which costs half as much. The orchestrator and the verifier stay on Opus 5.5.
+
+It was tested the same way, two runs each on the same plan:
+
+| Version | Hidden tests | Defects (blind review) | Cost per run |
+| --- | --- | --- | --- |
+| `/build`, Opus coders | 38/38 | 2 and 3 | about $6.50 |
+| `/build-sonnet`, Sonnet coders | 38/38 | 1 and 1 | $4.74 and $5.04 |
+
+The finished code was as good and the run was about a quarter cheaper. But in both Sonnet runs
+the coder first shipped a real double-booking bug that only the verifier caught. So it stays
+opt-in until it has held up on real builds, and both skills now tell the orchestrator to run a
+quick check on every piece that doesn't get a verifier.
+
+To install it, also copy `skills/build-sonnet/SKILL.md`, `agents/coder-sonnet.md` and
+`agents/coder-ui-sonnet.md` to the matching places under `~/.claude`. Type `/build-sonnet` to
+use it.
+
+---
+
 ## How to install it
 
 ### Option 1: Let Claude install it for you
@@ -148,6 +171,9 @@ turn, so a long session makes every step of the build cost more.
 | `skills/build/SKILL.md` | The skill: how the orchestrator plans, delegates, verifies and reports |
 | `agents/coder.md` | Builds one scoped piece. No browser. |
 | `agents/coder-ui.md` | The same as `coder`, plus a browser, for pieces that change a screen |
+| `skills/build-sonnet/SKILL.md` | The trial version of the skill with Sonnet 5.5 coders |
+| `agents/coder-sonnet.md`, `agents/coder-ui-sonnet.md` | The two coders on Sonnet 5.5 |
+| `make_sonnet.py` | Generates the three Sonnet files from the Opus ones, so they can't drift apart |
 | `agents/verifier.md` | Checks the coders' claims. Can't edit anything. |
 | `sync.ps1` | Copies my live copies from `~/.claude` into this repo so changes get committed |
 
