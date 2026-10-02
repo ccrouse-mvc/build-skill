@@ -39,14 +39,18 @@ moment it is most sure it got everything right.
    and the plan, and says the plan back to you before any work starts.
 2. **It breaks the job into pieces that can't collide.** Each piece gets its own files, a written
    brief, and a check that proves whether it worked. The plan goes in a file, so nothing is lost
-   if the conversation gets compacted.
+   if the conversation gets compacted. The plan also lists every "seam", where one piece's
+   output feeds another, with a test that runs the real thing into the real thing.
 3. **`coder` agents build the pieces**, in parallel when they don't share files. A `coder-ui`
    agent takes the pieces that change a screen and checks them in a real browser.
-4. **A `verifier` agent attacks every claim.** It has no ability to edit files, on purpose, so it
-   can't quietly "fix" what it's supposed to be judging. It answers CONFIRMED, REFUTED or UNPROVEN
-   for each claim.
-5. **The orchestrator commits, pushes and reports** what each agent actually delivered, and what
-   was checked versus taken on trust.
+4. **A `verifier` agent checks the risky pieces against the spec**, not just against what the
+   coder says it did. It has no ability to edit files, on purpose, so it can't quietly "fix" what
+   it's supposed to be judging. It answers CONFIRMED, REFUTED or UNPROVEN for each claim. The
+   orchestrator spot-checks every other piece itself.
+5. **One verifier then attacks the whole product** before anything is committed: the seams,
+   the limits, and every control and option as a user would use them.
+6. **The orchestrator commits, pushes and reports** what each agent actually delivered, and what
+   was checked versus taken on trust. A skipped or "todo" test counts as a failure.
 
 ---
 
@@ -106,9 +110,39 @@ the coder first shipped a real double-booking bug that only the verifier caught.
 opt-in until it has held up on real builds, and both skills now tell the orchestrator to run a
 quick check on every piece that doesn't get a verifier.
 
+### The big test: a whole game from scratch
+
+The same day, both skills built a complete browser game (about 90 upgrades) from one frozen spec:
+
+| | `/build` | `/build-sonnet` |
+| --- | --- | --- |
+| Hidden tests | 56/57 | 57/57 |
+| Major bugs found afterward | 3 | 4 |
+| Cost | $51.65 | $26.64 |
+
+Same quality for half the price, though the Opus version felt more polished to play. The bigger
+lesson was elsewhere: none of the seven major bugs were caught inside either run, and four of
+them sat in pieces a verifier had already passed. The verifiers were checking code against the
+coder's own report. A single verifier given only the spec and the finished game found four of
+the seven, plus two new ones, for about $2. That is now step 5, and verifiers judge against the
+spec first.
+
 To install it, also copy `skills/build-sonnet/SKILL.md`, `agents/coder-sonnet.md` and
 `agents/coder-ui-sonnet.md` to the matching places under `~/.claude`. Type `/build-sonnet` to
 use it.
+
+---
+
+## Design notes
+
+- **Every agent has a `tools:` list.** Without one, an agent inherits every tool in the session
+  and starts at about 88k tokens of context instead of about 35k, which it re-reads every turn.
+- **The verifier cannot edit, by construction.** A verifier that can fix what it finds stops
+  verifying the first time it is tempted, and collides with whoever else is in that file.
+- **No progress pulse.** A five-minute status update on a timer was tried and removed: created
+  18 times in one run, it fired once.
+- **No cheap "lite" coder for simple pieces.** A Sonnet 5 version saved under $0.10 a piece and
+  shipped the only failing hidden test, so it was retired.
 
 ---
 

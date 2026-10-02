@@ -27,7 +27,7 @@ In the report, give the run's verifier refutations and what your probes caught.
 default. The model thinks more per turn at a given effort than Opus 5 did, and at
 `medium` it beats Opus 5 at `max` on Anthropic's own coding benchmark. `verifier` stays
 at `high`, because thoroughness is the whole of its job. If coders start coming back
-PARTIAL or REFUTED more than the 2026-09-18 run did, `high` is the first thing to restore.
+PARTIAL or REFUTED more often, `high` is the first thing to restore.
 
 The orchestrator is whatever model this session is running. **Do not pass `model:` on an
 `Agent` call** — a per-call override beats the frontmatter pin and would undo it.
@@ -64,6 +64,10 @@ Before any agent exists:
   the file: that is a second copy you then pay for on every turn.
 - **Read `ROADMAP.md` and any spec** the task belongs to, where the project has them.
 - **Read the actual code** the change lands in. Enough to know what breaks.
+- **Settle the spec's conflicts.** List every place it contradicts itself or leaves a
+  choice open: one input bound to two actions, a limit with an exception, a rule two pieces
+  would each implement. Decide each one and write the decision into the plan file. On
+  2026-10-02 two builds of one spec shipped the same input bug from one such conflict.
 - **Say the plan back in a few sentences** before spawning anything, so a wrong reading is
   caught while it is still cheap.
 
@@ -90,11 +94,25 @@ A good task for a `coder-sonnet` is:
 - **Specific at the edges.** Say what happens when a dependency throws, the boundary
   values, any rounding, and which inputs are invalid or special. In the 2026-09-24 A/B
   test every non-UI defect, in all five versions, sat in a gap like that.
+- **Named, where the spec is loose.** A brief for look, feel, sound or copy lists every
+  effect it wants by name, not the category. That is where two runs of one spec differed
+  most.
+
+**Write down the seams.** The plan file gets a Seams table: one row per place where one
+piece's output is another's input, or new code meets existing code. Each row names the
+producer, the consumer, the exact names that cross (event kinds, keys, hook names), and one
+command that runs the real producer into the real consumer. A test that feeds a hand-made
+stand-in for another piece's output does not count. On 2026-10-02 a build shipped with every
+weapon silent: the game emitted `w_bullet`, the audio was keyed `bullet`, and the audio test
+fed itself `bullet`.
 
 Write the whole decomposition down before you spawn anything — **in a file**,
-`~/.claude/build-plans/<repo>-<job>.md`: the pieces, each brief, a status line per
-piece that you keep current, and **the agent ID of every piece in flight** (the Agent
-result gives it). A compact keeps the plan file and can lose the conversation; without the
+`~/.claude/build-plans/<repo>-<job>.md`: the pieces, the Seams table, a status line per
+piece that you keep current, the test count before wave 1 (pass, fail, skip), and **the
+agent ID of every piece in flight** (the Agent result gives it). **Write each brief once,
+to its own file** beside the plan (`<repo>-<job>.briefs/<piece>.md`), and make the Agent
+prompt one line: read the brief at that path. A brief pasted into both the plan and the
+prompt is paid for twice, and briefs were the biggest thing in the orchestrator's context. A compact keeps the plan file and can lose the conversation; without the
 ID written down you cannot `SendMessage` a running agent to resume or redirect it. The file is the plan, not the conversation, and it is what
 makes a `/compact` or a fresh session safe mid-job. If you cannot write it, you do not
 understand the task yet — go back to step 1.
@@ -108,9 +126,6 @@ Agent(subagent_type: "coder-sonnet", description: "...", prompt: <the brief>)
 - **`coder-sonnet` has no browser. `coder-ui-sonnet` does** — plus the front-end standards preloaded —
   and pays for it in context on every turn. Use `coder-ui-sonnet` only when the piece changes UI
   or its acceptance check has to run in a real browser. Everything else is `coder-sonnet`.
-- **Mechanical pieces go to `coder-sonnet` too.** `coder-lite` (Sonnet 5) was trialed and retired
-  on 2026-09-24: it saved under $0.10 a piece and shipped the A/B test's only hidden-test
-  failure.
 - **Parallel by default** when the pieces are file-disjoint: send them in **one message
   with multiple tool calls** so they actually run concurrently.
 - **Sequential** when one piece's output is the next one's input, or when they share a
@@ -123,28 +138,21 @@ Agent(subagent_type: "coder-sonnet", description: "...", prompt: <the brief>)
 Keep it to a handful at a time. Ten agents on one repo is not ten times the throughput,
 it is ten chances to collide.
 
-No progress pulse. A cron-driven five-minute update was tried and removed on 2026-09-23:
-created 18 times in one run, it fired once. Do not recreate it.
-
 ## Your own context is the multiplier
 
-You hold the biggest context in the run, and every turn re-reads all of it. Measured
-2026-09-23: five builds in one session over 27 hours put the orchestrator at 22% of the
-bill with 10 cold rewrites; the one-build 2026-09-18 run after a compact was 9%.
+You hold the biggest context in the run, and every turn re-reads all of it.
 
 - **One job per session.** Do not start a `/build` on top of a day of other work, and do
   not let one run for days. **If this session already holds a lot — earlier work, a
   resume, anything past roughly 100k tokens — make it the first line of your reply,
   before the plan:** "This session is already long; every turn of this build re-reads
-  it. Start `/build` in a fresh session, or type `/compact` first." Then carry on. The
-  2026-09-18 run started at 226k, and it is re-read on every orchestrator turn.
-- **Trim your own shell output** — `| tail -n 15`, `| grep`. It is the biggest thing in
-  your context and it is re-read on every turn that follows.
+  it. Start `/build` in a fresh session, or type `/compact` first." Then carry on.
+- **Trim your own shell output** — `| tail -n 15`, `| grep`. It is re-read on every turn
+  that follows.
 - **Between waves of a long run, tell Chuck he can compact — in exactly these terms:**
   "You can type `/compact` now; the plan file has everything." You cannot run it
   yourself, and "a compact is safe here" left him unsure whether you were doing it. Only
-  say it when the plan file is current, in-flight agent IDs included. The 2026-09-18
-  compact cut the orchestrator from 348k to 131k.
+  say it when the plan file is current, in-flight agent IDs included.
 
 ## 4. Verify. Never trust the report.
 
@@ -156,11 +164,14 @@ quietly fix what it is judging:
 
 ```
 Agent(subagent_type: "verifier", description: "...", prompt:
-  <the original brief> + <the coder-sonnet's report verbatim> + <what specifically to attack>)
+  <the spec section the piece implements> + <the brief's path> + <the coder-sonnet's report verbatim>
+  + <what specifically to attack>)
 ```
 
 Give it the report **verbatim**. It cannot see the coder-sonnet's transcript either, and a
-paraphrase is where the interesting discrepancy goes missing.
+paraphrase is where the interesting discrepancy goes missing. Give it the spec too: it
+judges the code against the spec first and the report second. On 2026-10-02 a verifier
+given only the report confirmed a rule that matched the code and contradicted the spec.
 
 It answers CONFIRMED / REFUTED / **UNPROVEN** per claim. Treat UNPROVEN as its own
 outcome, not a soft pass — it means nobody has checked, and that is the state most bugs
@@ -172,13 +183,13 @@ nothing and it is the run you will be quoting in the report.
 
 **A verifier is required — no judgement call — when the piece:**
 
-- claims a *fix* rather than an addition, or
-- touches locks, concurrency, transactions, migrations, or anything that runs on a schedule.
+- claims a *fix* rather than an addition,
+- touches locks, concurrency, transactions, migrations, or anything that runs on a schedule, or
+- is the piece every other piece builds on (the core model, the shared engine).
 
-The measured catches were in that set (an ABBA deadlock, a write past a lock).
-Otherwise spawn one when the change is subtle, spans files,
-or touches UI, and skip it when the coder-sonnet's evidence is a test that plainly exercises the
-new path and you have read it.
+The measured catches were in that set (an ABBA deadlock, a write past a lock, rule breaks
+in a game's core). Everything else gets your probe, and the whole product gets one
+verifier at close-out (step 5).
 
 **Every piece without a verifier gets a probe from you.** Read its diff, then run one
 quick check that would fail if the piece were wrong at an edge: a boundary value, a
@@ -187,12 +198,32 @@ orchestrators that ran a one-line rounding probe caught a bug that two who only 
 same code shipped.
 
 If a piece came back PARTIAL or BLOCKED, or a verifier says REFUTED, **you** decide what
-happens: send it back with the verifier's finding attached, take it on yourself, or cut it
-and say so. Do not re-spawn the identical brief and hope.
+happens, under one rule: **fix it yourself only when it is one file and one rule**, then run
+the test that covers it. Your edits get no verifier, so keep them that small. Anything
+bigger goes back to the same coder-sonnet by `SendMessage`, with the finding attached. Or cut it
+and say so. Do not re-spawn the identical brief and hope. On 2026-10-02 an orchestrator that
+fixed nine refutations itself created the run's worst bug in one of those edits.
 
 ## 5. Close it out the project's way
 
-Every project here has its own end-of-work ritual and `CLAUDE.md` states it. Common shape:
+**First, one whole-product verifier.** After the last piece lands, spawn one `verifier`
+with the spec, the plan's Seams table and the build: no briefs, no coder-sonnet reports. Tell it to
+attack three things by running code: every seam (the real producer into the real consumer),
+every rule no single piece owns (limits, performance budgets, skipped tests), and the
+product as a user (every control on every screen, every option against its own
+description). On an existing codebase, scope it to the diff and whatever calls into it.
+About $2 and 12 minutes. On 2026-10-02 it found 4 of 7 major bugs that six per-piece
+verifiers had missed, plus two nobody had found.
+
+Its findings get **one** fix wave, under the rule in step 4. Then rerun only its failing
+probes, not a second verifier. Whatever still fails goes in the report.
+
+**Green means 0 fail, 0 todo, 0 skip**, and nothing that passed before wave 1 now fails. A
+`todo` parked over a real failure is a failure. **Every item you would report as "taken on
+report" gets a probe now**, or the report's first line says PARTIAL. On 2026-10-02 both
+builds' reports named, as taken on report, exactly the areas their major bugs were in.
+
+Then the project's own end-of-work ritual, which its `CLAUDE.md` states. Common shape:
 
 - Tests green, with new assertions for new behavior.
 - `ROADMAP.md` and `CHANGELOG.md` updated **in the same commit** — CineFile makes this
@@ -206,8 +237,7 @@ carries doc updates only you can see the shape of.
 ## 6. Report
 
 **Brief, per his global `CLAUDE.md`**: what changed and what the result was, in a few
-lines, with the numbers in them. The old "What I did / Caveats / What we should do next"
-format was retired on 2026-09-08 — do not reconstruct it.
+lines, with the numbers in them.
 
 Two things an orchestrated run still has to say, a line or two each:
 
@@ -225,15 +255,7 @@ Two things an orchestrated run still has to say, a line or two each:
 | --- | --- | --- | --- |
 | `coder-sonnet` | Sonnet 5.5 | yes | building one scoped, file-disjoint piece — no browser |
 | `coder-ui-sonnet` | Sonnet 5.5 | yes | the same, when the piece is UI or must be checked in a real browser |
-| `verifier` | Opus 5.5 | **no** | attacking a claim the coder-sonnet made |
-
-`coder-sonnet` and `coder-ui-sonnet` share one body and differ only in tools. Both carry a `tools:`
-whitelist on purpose: without one an agent inherits every tool schema in the session and
-starts at ~88k tokens instead of ~35k, re-read on every turn.
-
-The split is the point. `verifier` has no edit tools *by construction*, not by
-instruction — a verifier that can fix what it finds stops verifying the first time it is
-tempted, and starts colliding with whoever else is in that file.
+| `verifier` | Opus 5.5 | **no** | attacking a piece against the spec, and the whole product before commit |
 
 Adding another is one more file in `~/.claude/agents/`, same frontmatter shape,
 `model: claude-opus-5-5` (full ID, not the alias), **with a `tools:` line**. Keep the count low: every agent type is another
