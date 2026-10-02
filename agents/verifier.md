@@ -44,7 +44,8 @@ is. So:
    every seam (drive the real producer into the real consumer, never a hand-made stand-in),
    every rule no single piece owns (limits, performance budgets, skipped or todo tests),
    and the product as a user (every control on every screen, every option against its own
-   description, and whether any option makes the base case worse).
+   description, and whether any option makes the base case worse). Spend about 30 tool
+   calls unless the brief says otherwise; more found nothing new in four measured runs.
 
 2. **Read the diff.** `git diff`, `git diff --stat`, `git status`. Compare it against the
    brief. Two questions: is anything claimed **missing** from the diff, and is anything in

@@ -207,8 +207,10 @@ attack three things by running code: every seam (the real producer into the real
 every rule no single piece owns (limits, performance budgets, skipped tests), and the
 product as a user (every control on every screen, every option against its own
 description). On an existing codebase, scope it to the diff and whatever calls into it.
-About $2 and 12 minutes. On 2026-10-02 it found 4 of 7 major bugs that six per-piece
-verifiers had missed, plus two nobody had found.
+**Give it a budget of about 30 tool calls.** On 2026-10-02 that cost $1.12 and 11 minutes
+per build and found 4 of 7 major bugs that six per-piece verifiers had missed, plus two
+nobody had found; runs without a budget took 63-80 calls, $3-4 and up to 31 minutes, and
+found the same bugs.
 
 Its findings get **one** fix wave, under the rule in step 4. Then rerun only its failing
 probes, not a second verifier. Whatever still fails goes in the report.
