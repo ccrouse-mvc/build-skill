@@ -117,6 +117,30 @@ two runs of one spec came out with a clear polish gap, and when the plainer run'
 rebuilt from the other run's more detailed briefs, the cheaper coders produced the version
 Chuck picked blind. Skip the table when nothing user-facing changes.
 
+**Write the design sheet too, when the work has screens.** The experience spec says what
+each action feels like; the design sheet pins what the whole product looks like, so no coder
+has to invent it. It goes in the plan file and in full into the shared brief every UI piece
+reads. It is prescriptive, not a list of wishes:
+
+- **Identity.** The product's mark, drawn: the actual logo as inline SVG or exact glyphs,
+  the accent color, the type scale. "A wordmark" is not a decision; the wordmark is.
+- **What is on every screen.** Each persistent element (status, a running job, the current
+  user, global actions), what it shows, and what can be done from it without leaving the
+  screen. Name the one piece that builds it and say the others must not hide it.
+- **Icon map.** Every action and nav item, with the specific icon for it. Coders do not pick.
+- **Shortcut map.** Every key, what it does, on which screens, and where the user is told.
+- **Visual codes.** Any meaning carried by color, shape or position (one color per client,
+  a status color) is defined once, with its values, and listed against every screen where
+  that thing appears. A code used on two screens and missing on a third is a defect.
+- **Layout per screen.** Regions, what is in each, column order, and what drops first when
+  it does not fit.
+
+Each UI brief then ends with checks a verifier can run from the sheet ("the logo SVG is in
+the rail on all six routes", "S starts the timer from every screen", "a client's color dot
+appears on Timer, Entries, Invoices and Reports"). On 2026-10-03 two arms had the same
+experience spec asks (a mark, a timer visible everywhere); the cheaper coders delivered them
+thinner and applied a color code to two screens of four, and Chuck scored it 7 against 8.
+
 **Write down the seams.** The plan file gets a Seams table: one row per place where one
 piece's output is another's input, or new code meets existing code. Each row names the
 producer, the consumer, the exact names that cross (event kinds, keys, hook names), and one
@@ -241,7 +265,8 @@ probes, not a second verifier. Whatever still fails goes in the report.
 
 **Then a polish pass, when the work is user-facing.** Use the product yourself as a user
 would, in a real browser or the real terminal: walk the main path and the states in the
-experience spec. Write down every row that is missing, flat or wrong, and send each owning
+experience spec, then check every line of the design sheet on every screen it names
+(identity, persistent elements, icons, shortcuts, visual codes). Write down every row that is missing, flat or wrong, and send each owning
 coder one round of named fixes by `SendMessage` ("the hit has no flash", "the empty state is
 a blank panel"), not "polish it". The more polished 2026-10-02 run did exactly this once,
 unprompted; the other did not.
