@@ -96,9 +96,17 @@ A good task for a `coder` is:
 - **Specific at the edges.** Say what happens when a dependency throws, the boundary
   values, any rounding, and which inputs are invalid or special. In the 2026-09-24 A/B
   test every non-UI defect, in all five versions, sat in a gap like that.
-- **Named, where the spec is loose.** A brief for look, feel, sound or copy lists every
-  effect it wants by name, not the category. That is where two runs of one spec differed
-  most.
+- **Named, where the spec is loose.** A brief for look, feel, sound or copy carries its
+  rows of the experience spec below, not a category like "add polish".
+
+**Write the experience spec.** Polish is the plan's job, not the coder's. When the work
+changes anything a person sees, hears or reads, the plan file gets a table: every action
+the user takes and every event they should notice, and for each, the feedback it gets
+(visual, motion, sound, copy), plus the empty, loading, error and success states of every
+screen. Decide it yourself; do not leave it to whichever coder gets the piece. On 2026-10-02
+two runs of one spec came out with a clear polish gap, and when the plainer run's pieces were
+rebuilt from the other run's more detailed briefs, the cheaper coders produced the version
+Chuck picked blind. Skip the table when nothing user-facing changes.
 
 **Write down the seams.** The plan file gets a Seams table: one row per place where one
 piece's output is another's input, or new code meets existing code. Each row names the
@@ -221,6 +229,13 @@ found the same bugs.
 
 Its findings get **one** fix wave, under the rule in step 4. Then rerun only its failing
 probes, not a second verifier. Whatever still fails goes in the report.
+
+**Then a polish pass, when the work is user-facing.** Use the product yourself as a user
+would, in a real browser or the real terminal: walk the main path and the states in the
+experience spec. Write down every row that is missing, flat or wrong, and send each owning
+coder one round of named fixes by `SendMessage` ("the hit has no flash", "the empty state is
+a blank panel"), not "polish it". The more polished 2026-10-02 run did exactly this once,
+unprompted; the other did not.
 
 **Green means 0 fail, 0 todo, 0 skip**, and nothing that passed before wave 1 now fails. A
 `todo` parked over a real failure is a failure. **Every item you would report as "taken on
