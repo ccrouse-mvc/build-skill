@@ -59,10 +59,17 @@ Before any agent exists:
   the file: that is a second copy you then pay for on every turn.
 - **Read `ROADMAP.md` and any spec** the task belongs to, where the project has them.
 - **Read the actual code** the change lands in. Enough to know what breaks.
-- **Settle the spec's conflicts.** List every place it contradicts itself or leaves a
-  choice open: one input bound to two actions, a limit with an exception, a rule two pieces
-  would each implement. Decide each one and write the decision into the plan file. On
-  2026-10-02 two builds of one spec shipped the same input bug from one such conflict.
+- **Have the plan checked for holes, then settle them.** Once you have read the spec, spawn
+  one `verifier` on the spec alone, before any code exists: "list every place where coders
+  working from this spec would have to guess. For each pair of things that meet at runtime
+  (an effect on an enemy that moves itself, an option against the base case, one input on
+  different screens, a limit and whatever creates things under it), does the spec say what
+  happens? Also contradictions, limits with exceptions, and any option that could make the
+  base case worse. Top 15 by how badly a user would notice, each with a proposed decision;
+  about 30 tool calls." Decide every hole it lists, and every one you see yourself, and write
+  the decisions into the plan file. On 2026-10-02 this took 2 minutes and under $1 and found
+  38 holes in one game spec, including the ones behind two shipped bugs; it missed others,
+  so it does not replace the checks in steps 4 and 5.
 - **Say the plan back in a few sentences** before spawning anything, so a wrong reading is
   caught while it is still cheap.
 
