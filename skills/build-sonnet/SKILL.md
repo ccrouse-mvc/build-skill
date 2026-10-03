@@ -11,6 +11,15 @@ plan checks everything before it builds on it.**
 Invoking this skill is the authorization to use the `Agent` tool. Outside it, the default
 still stands: do not spawn agents unless asked.
 
+**A build runs to the end without asking Chuck anything.** His preferences were settled when
+the plan was written. Anything the plan leaves open (a hole the plan check finds, a design
+choice, a trade-off, a fork in the approach) you decide yourself, write the decision and its
+reason in the plan file, and list it in the final report so he can overrule it afterwards.
+This overrides the usual rule of putting decisions to him with `AskUserQuestion`: inside a
+build there are no questions. Stop only for what his `CLAUDE.md` always requires confirming
+(destroying data or published history, a credential going somewhere new) or a blocker
+nothing within reach can clear, and then say exactly what is blocked.
+
 ## Sonnet 5.5 writes, Opus 5.5 plans and checks (trial, 2026-10-02)
 
 **`coder-sonnet` and `coder-ui-sonnet` run Sonnet 5.5; the orchestrator and `verifier` run Opus 5.5.**
@@ -75,8 +84,8 @@ Before any agent exists:
   the decisions into the plan file. On 2026-10-02 this took 2 minutes and under $1 and found
   38 holes in one game spec, including the ones behind two shipped bugs; it missed others,
   so it does not replace the checks in steps 4 and 5.
-- **Say the plan back in a few sentences** before spawning anything, so a wrong reading is
-  caught while it is still cheap.
+- **Say the plan back in a few sentences** before spawning anything, so Chuck can catch a
+  wrong reading while it is still cheap. Then carry on; do not wait for a reply.
 
 Use `Explore` agents for *breadth* — "where does X get set across this repo" — when a
 sweep would otherwise dump twenty files into your context. Never use one to decide
