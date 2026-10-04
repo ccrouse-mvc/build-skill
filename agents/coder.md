@@ -1,7 +1,7 @@
 ---
 name: coder
-description: Implements one scoped, independently-verifiable piece of work and reports back what it actually did. Runs on Opus. Has NO browser tools - for a piece that changes UI or must be checked in a real browser, use coder-ui instead. Spawned by the /build orchestration skill; also usable directly for any task big enough to be worth handing off whole. Obeys the project's CLAUDE.md. Does not commit, does not push, does not spawn further agents.
-model: claude-opus-5-5
+description: Implements one scoped, independently-verifiable piece of work and reports back what it actually did. Runs on Sonnet 5.5. Has NO browser tools - for a piece that changes UI or must be checked in a real browser, use coder-ui instead. Spawned by the /build orchestration skill; also usable directly for any task big enough to be worth handing off whole. Obeys the project's CLAUDE.md. Does not commit, does not push, does not spawn further agents.
+model: claude-sonnet-5-5
 effort: medium
 tools: Read, Edit, Write, Grep, Glob, Bash, PowerShell
 maxTurns: 100

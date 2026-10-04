@@ -1,9 +1,9 @@
 ---
 name: build
-description: Run a piece of work as an orchestrator — hold the plan and the model of the system yourself, hand the actual implementation to Opus 5.5 `coder` agents, check their work against the spec, and verify the whole product before commit. Use when Chuck types /build, or says orchestrate this, delegate this, run this as agents, break this up, or hands over a job big enough that one pass will not do it. Not for one-line fixes.
+description: Run a piece of work as an orchestrator — hold the plan and the model of the system yourself, hand the actual implementation to `coder` agents (Sonnet 5.5 for logic, Opus 5.5 for UI), check their work against the spec, and verify the whole product before commit. Use when Chuck types /build, or says orchestrate this, delegate this, run this as agents, break this up, or hands over a job big enough that one pass will not do it. Not for one-line fixes.
 ---
 
-# build — you orchestrate, Opus 5.5 writes
+# build — you orchestrate, the coders write
 
 Chuck's pattern: **one mind holds the plan, other minds do the work, and the one holding the
 plan checks everything before it builds on it.**
@@ -20,16 +20,22 @@ build there are no questions. Stop only for what his `CLAUDE.md` always requires
 (destroying data or published history, a credential going somewhere new) or a blocker
 nothing within reach can clear, and then say exactly what is blocked.
 
-## Opus 5.5 on every level (set 2026-09-22, "for now")
+## Sonnet 5.5 writes logic, Opus 5.5 writes UI, plans and checks (set 2026-10-03)
 
-**Every seat runs Opus 5.5** — the orchestrator, every `coder`, `coder-ui` and `verifier`.
-The three agents are pinned by
-full ID in their frontmatter (`model: claude-opus-5-5`), not the `opus` alias, so a newer
-alias target cannot quietly swap them out. That half is automatic.
+**`coder` runs Sonnet 5.5; `coder-ui`, `verifier` and the orchestrator run Opus 5.5.**
+The three agents are pinned by full ID in their frontmatter (`claude-sonnet-5-5` for
+`coder`, `claude-opus-5-5` for `coder-ui` and `verifier`), not an alias, so a newer alias
+target cannot quietly swap them out. That half is automatic.
+
+**Why the split (Chuck, 2026-10-03, D-081).** Five A/B builds: Sonnet coders matched Opus on
+hidden tests every time and cost 16-48% less; the one build Opus won, it won on visual polish.
+So logic goes to Sonnet and screens stay on Opus. Sonnet coders did ship bugs that only the
+verifier caught, so the verifier and probe rules in step 4 are not optional. In the report,
+give the run's verifier refutations and what your probes caught.
 
 **Effort (set 2026-09-22):** `coder` and `coder-ui` run at `medium`, Opus 5.5's own
-default. The model thinks more per turn at a given effort than Opus 5 did, and at
-`medium` it beats Opus 5 at `max` on Anthropic's own coding benchmark. `verifier` stays
+default (for `coder-ui`; `coder` is Sonnet 5.5 at `medium`, the setting all five test
+builds ran on). `verifier` stays
 at `high`, because thoroughness is the whole of its job. If coders start coming back
 PARTIAL or REFUTED more often, `high` is the first thing to restore.
 
@@ -306,10 +312,10 @@ Two things an orchestrated run still has to say, a line or two each:
 
 | Agent | Model | Can edit | For |
 | --- | --- | --- | --- |
-| `coder` | Opus 5.5 | yes | building one scoped, file-disjoint piece — no browser |
+| `coder` | Sonnet 5.5 | yes | building one scoped, file-disjoint piece — no browser |
 | `coder-ui` | Opus 5.5 | yes | the same, when the piece is UI or must be checked in a real browser |
 | `verifier` | Opus 5.5 | **no** | attacking a piece against the spec, and the whole product before commit |
 
 Adding another is one more file in `~/.claude/agents/`, same frontmatter shape,
-`model: claude-opus-5-5` (full ID, not the alias), **with a `tools:` line**. Keep the count low: every agent type is another
+a full model ID (not an alias), **with a `tools:` line**. Keep the count low: every agent type is another
 brief that can go stale.

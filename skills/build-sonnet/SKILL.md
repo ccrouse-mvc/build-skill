@@ -1,6 +1,6 @@
 ---
 name: build-sonnet
-description: /build with Sonnet 5.5 coders (opt-in trial since 2026-10-02). The same orchestration: you hold the plan, `coder-sonnet` agents write, an Opus 5.5 `verifier` checks. Use ONLY when Chuck types /build-sonnet or asks for the Sonnet build; plain /build, orchestrate this and delegate this go to the build skill.
+description: /build with Sonnet 5.5 on every coder seat, UI included (plain /build keeps the UI coder on Opus). The same orchestration: you hold the plan, `coder-sonnet` agents write, an Opus 5.5 `verifier` checks. Use ONLY when Chuck types /build-sonnet or asks for the Sonnet build; plain /build, orchestrate this and delegate this go to the build skill.
 ---
 
 # build-sonnet — you orchestrate, Sonnet 5.5 writes
@@ -20,21 +20,22 @@ build there are no questions. Stop only for what his `CLAUDE.md` always requires
 (destroying data or published history, a credential going somewhere new) or a blocker
 nothing within reach can clear, and then say exactly what is blocked.
 
-## Sonnet 5.5 writes, Opus 5.5 plans and checks (trial, 2026-10-02)
+## Sonnet 5.5 writes everything, Opus 5.5 plans and checks
 
-**`coder-sonnet` and `coder-ui-sonnet` run Sonnet 5.5; the orchestrator and `verifier` run Opus 5.5.**
-The three agents are pinned by full ID in their frontmatter (`claude-sonnet-5-5` for the
-coders, `claude-opus-5-5` for the verifier), not an alias, so a newer alias target cannot
-quietly swap them out. That half is automatic.
+**`coder-sonnet` and `coder-ui-sonnet` run Sonnet 5.5; `verifier` and the orchestrator run Opus 5.5.** This is the all-Sonnet variant of /build, which keeps `coder-ui-sonnet` on Opus.
+The three agents are pinned by full ID in their frontmatter (`claude-sonnet-5-5` for
+`coder-sonnet`, `claude-opus-5-5` for `coder-ui-sonnet` and `verifier`), not an alias, so a newer alias
+target cannot quietly swap them out. That half is automatic.
 
-**This is a trial.** In the 2026-10-02 test Sonnet coders cost about half as much per seat
-and the finished code matched all-Opus, but both Sonnet runs first shipped a lock bug that
-only the verifier caught. So the verifier and probe rules in step 4 are not optional here.
-In the report, give the run's verifier refutations and what your probes caught.
+**Why the split (Chuck, 2026-10-03, D-081).** Five A/B builds: Sonnet coders matched Opus on
+hidden tests every time and cost 16-48% less; the one build Opus won, it won on visual polish.
+So logic goes to Sonnet and screens stay on Opus. Sonnet coders did ship bugs that only the
+verifier caught, so the verifier and probe rules in step 4 are not optional. In the report,
+give the run's verifier refutations and what your probes caught.
 
 **Effort (set 2026-09-22):** `coder-sonnet` and `coder-ui-sonnet` run at `medium`, Opus 5.5's own
-default. The model thinks more per turn at a given effort than Opus 5 did, and at
-`medium` it beats Opus 5 at `max` on Anthropic's own coding benchmark. `verifier` stays
+default (for `coder-ui-sonnet`; `coder-sonnet` is Sonnet 5.5 at `medium`, the setting all five test
+builds ran on). `verifier` stays
 at `high`, because thoroughness is the whole of its job. If coders start coming back
 PARTIAL or REFUTED more often, `high` is the first thing to restore.
 
@@ -316,5 +317,5 @@ Two things an orchestrated run still has to say, a line or two each:
 | `verifier` | Opus 5.5 | **no** | attacking a piece against the spec, and the whole product before commit |
 
 Adding another is one more file in `~/.claude/agents/`, same frontmatter shape,
-`model: claude-opus-5-5` (full ID, not the alias), **with a `tools:` line**. Keep the count low: every agent type is another
+a full model ID (not an alias), **with a `tools:` line**. Keep the count low: every agent type is another
 brief that can go stale.

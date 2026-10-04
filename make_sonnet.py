@@ -3,26 +3,26 @@
 # Reads ~/.claude/skills/build/SKILL.md and ~/.claude/agents/{coder,coder-ui}.md and writes
 #   ~/.claude/skills/build-sonnet/SKILL.md
 #   ~/.claude/agents/coder-sonnet.md, coder-ui-sonnet.md
-# The only differences: the two coder agents run claude-sonnet-5-5 under new names, and the
+# Since 2026-10-03 /build itself runs Sonnet for `coder` and Opus for `coder-ui`; this is the
+# all-Sonnet variant. The only differences: both coder agents run claude-sonnet-5-5 under new names, and the
 # skill text says so. The verifier and the orchestrator stay as they are.
 # Edit /build, then rerun this. Never edit the generated files by hand.
 import os, re
 
 HOME = os.path.expanduser("~/.claude")
 SONNET = "claude-sonnet-5-5"
-DESCRIPTION = ("description: /build with Sonnet 5.5 coders (opt-in trial since 2026-10-02). The same "
+DESCRIPTION = ("description: /build with Sonnet 5.5 on every coder seat, UI included (plain /build keeps the UI coder on Opus). The same "
                "orchestration: you hold the plan, `coder-sonnet` agents write, an Opus 5.5 `verifier` "
                "checks. Use ONLY when Chuck types /build-sonnet or asks for the Sonnet build; "
                "plain /build, orchestrate this and delegate this go to the build skill.")
 
 # (old, new) pairs applied to SKILL.md before the agent renames. Each must match exactly once.
 SKILL_EDITS = [
-    ("# build — you orchestrate, Opus 5.5 writes", "# build-sonnet — you orchestrate, Sonnet 5.5 writes"),
-    ("## Opus 5.5 on every level (set 2026-09-22, \"for now\")",
-     "## Sonnet 5.5 writes, Opus 5.5 plans and checks (trial, 2026-10-02)"),
-    ("**Every seat runs Opus 5.5** — the orchestrator, every `coder`, `coder-ui` and `verifier`.\nThe three agents are pinned by\nfull ID in their frontmatter (`model: claude-opus-5-5`), not the `opus` alias, so a newer\nalias target cannot quietly swap them out. That half is automatic.",
-     "**`coder` and `coder-ui` run Sonnet 5.5; the orchestrator and `verifier` run Opus 5.5.**\nThe three agents are pinned by full ID in their frontmatter (`claude-sonnet-5-5` for the\ncoders, `claude-opus-5-5` for the verifier), not an alias, so a newer alias target cannot\nquietly swap them out. That half is automatic.\n\n**This is a trial.** In the 2026-10-02 test Sonnet coders cost about half as much per seat\nand the finished code matched all-Opus, but both Sonnet runs first shipped a lock bug that\nonly the verifier caught. So the verifier and probe rules in step 4 are not optional here.\nIn the report, give the run's verifier refutations and what your probes caught."),
-    ("| `coder` | Opus 5.5 | yes |", "| `coder` | Sonnet 5.5 | yes |"),
+    ("# build — you orchestrate, the coders write", "# build-sonnet — you orchestrate, Sonnet 5.5 writes"),
+    ("## Sonnet 5.5 writes logic, Opus 5.5 writes UI, plans and checks (set 2026-10-03)",
+     "## Sonnet 5.5 writes everything, Opus 5.5 plans and checks"),
+    ("**`coder` runs Sonnet 5.5; `coder-ui`, `verifier` and the orchestrator run Opus 5.5.**",
+     "**`coder` and `coder-ui` run Sonnet 5.5; `verifier` and the orchestrator run Opus 5.5.** This is the all-Sonnet variant of /build, which keeps `coder-ui` on Opus."),
     ("| `coder-ui` | Opus 5.5 | yes |", "| `coder-ui` | Sonnet 5.5 | yes |"),
 ]
 
@@ -54,7 +54,7 @@ write(f"{HOME}/skills/build-sonnet/SKILL.md", skill)
 
 for agent in ("coder", "coder-ui"):
     text = read(f"{HOME}/agents/{agent}.md")
-    text = once(text, r"^model: claude-opus-5-5$", f"model: {SONNET}", f"{agent} model line")
+    text = once(text, r"^model: claude-(opus|sonnet)-5-5$", f"model: {SONNET}", f"{agent} model line")
     text = text.replace("Runs on Opus", "Runs on Sonnet 5.5")
     write(f"{HOME}/agents/{agent}-sonnet.md", rename_agents(text))
 
